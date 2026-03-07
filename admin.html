@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin — Bendito's Pizza</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --orange: #f05a00;
+      --bg: #111111;
+      --surface: #1e1e1e;
+      --surface2: #2a2a2a;
+      --white: #f5f0eb;
+      --gray: #888;
+      --green: #7cbb7c;
+      --red: #e07070;
+    }
+    body { background: var(--bg); color: var(--white); font-family: 'Barlow', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; gap: 1.2rem; }
+
+    .logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--orange); letter-spacing: 0.05em; text-align: center; }
+    .logo span { color: var(--white); }
+    .subtitulo { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; color: var(--gray); letter-spacing: 0.1em; text-transform: uppercase; text-align: center; }
+
+    /* LOGIN */
+    .login-box { background: var(--surface); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 2rem; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 0.8rem; }
+    .login-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); text-align: center; }
+    .input { width: 100%; background: var(--surface2); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: var(--white); font-family: 'Barlow', sans-serif; font-size: 1rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; }
+    .input:focus { border-color: var(--orange); }
+    .btn { width: 100%; padding: 0.8rem; border-radius: 10px; border: none; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; transition: all 0.2s; }
+    .btn-entrar { background: var(--orange); color: white; }
+    .btn-entrar:hover { background: #d44e00; }
+    .erro { font-size: 0.82rem; color: var(--red); text-align: center; display: none; }
+
+    /* PAINEL */
+    .painel { width: 100%; max-width: 380px; display: none; flex-direction: column; gap: 1rem; }
+    .painel.show { display: flex; }
+
+    .card { background: var(--surface); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.4rem; }
+    .card-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 0.85rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray); margin-bottom: 1rem; }
+
+    /* STATUS */
+    .status-atual { display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.7rem 1.2rem; border-radius: 999px; font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 1rem; }
+    .status-atual.aberto { background: rgba(80,200,80,0.12); border: 1px solid rgba(80,200,80,0.3); color: var(--green); }
+    .status-atual.fechado { background: rgba(220,60,60,0.12); border: 1px solid rgba(220,60,60,0.3); color: var(--red); }
+    .status-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .status-atual.aberto .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+    .status-atual.fechado .status-dot { background: var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .status-btns { display: flex; gap: 0.6rem; }
+    .btn-abrir { flex: 1; background: rgba(80,200,80,0.15); color: var(--green); border: 1px solid rgba(80,200,80,0.3); border-radius: 10px; padding: 0.7rem; font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn-abrir:hover { background: rgba(80,200,80,0.25); }
+    .btn-fechar { flex: 1; background: rgba(220,60,60,0.15); color: var(--red); border: 1px solid rgba(220,60,60,0.3); border-radius: 10px; padding: 0.7rem; font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn-fechar:hover { background: rgba(220,60,60,0.25); }
+
+    /* CUPONS */
+    .cupom-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .cupom-row:last-child { border-bottom: none; }
+    .cupom-info { display: flex; flex-direction: column; gap: 0.15rem; }
+    .cupom-codigo { font-family: monospace; font-size: 0.95rem; font-weight: 700; color: var(--white); }
+    .cupom-desc { font-size: 0.78rem; color: var(--gray); }
+
+    /* TOGGLE */
+    .toggle { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: #444; border-radius: 999px; cursor: pointer; transition: 0.3s; }
+    .toggle-slider:before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+    .toggle input:checked + .toggle-slider { background: var(--green); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+    /* SALVANDO */
+    .salvando { font-size: 0.8rem; color: var(--orange); text-align: center; height: 1.2rem; transition: opacity 0.3s; }
+
+    /* SAIR */
+    .btn-sair { background: transparent; color: var(--gray); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 0.6rem; font-family: 'Barlow Condensed', sans-serif; font-size: 0.9rem; cursor: pointer; }
+    .btn-sair:hover { color: var(--white); border-color: rgba(255,255,255,0.25); }
+
+    .loading { color: var(--gray); font-size: 0.85rem; text-align: center; padding: 1rem; }
+  </style>
+</head>
+<body>
+
+  <div class="logo">BENDITO'S <span>PIZZA</span></div>
+  <div class="subtitulo">🔐 Painel Administrativo</div>
+
+  <!-- LOGIN -->
+  <div class="login-box" id="loginBox">
+    <div class="login-titulo">Digite a senha para entrar</div>
+    <input class="input" id="senhaInput" type="password" placeholder="Senha..." onkeydown="if(event.key==='Enter') entrar()" />
+    <button class="btn btn-entrar" onclick="entrar()">Entrar</button>
+    <div class="erro" id="loginErro">❌ Senha incorreta!</div>
+  </div>
+
+  <!-- PAINEL -->
+  <div class="painel" id="painel">
+
+    <!-- STATUS -->
+    <div class="card">
+      <div class="card-titulo">🏪 Status da Loja</div>
+      <div class="status-atual aberto" id="statusAtual">
+        <div class="status-dot"></div>
+        <span id="statusTexto">Carregando...</span>
+      </div>
+      <div class="status-btns">
+        <button class="btn-abrir" onclick="setStatus('aberto')">🟢 Abrir Loja</button>
+        <button class="btn-fechar" onclick="setStatus('fechado')">🔴 Fechar Loja</button>
+      </div>
+    </div>
+
+    <!-- CUPONS -->
+    <div class="card">
+      <div class="card-titulo">🎟️ Cupons de Desconto</div>
+      <div id="cuponsLista"><div class="loading">Carregando...</div></div>
+    </div>
+
+    <div class="salvando" id="salvando"></div>
+    <button class="btn btn-sair" onclick="sair()">Sair do painel</button>
+
+  </div>
+
+  <script>
+    const JSONBIN_ID  = '69ac96bdd0ea881f40fa3072';
+    const JSONBIN_KEY = '$2a$10$hg7W4WJUgrSSg70/aUjppuzbFGHAon1D6yERbWELlUu/WTM2Tx1F.';
+    const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+    const SENHA_CORRETA = 'benditos2024';
+
+    let dadosAtuais = {};
+    let logado = false;
+
+    function entrar() {
+      const senha = document.getElementById('senhaInput').value;
+      if (senha !== SENHA_CORRETA) {
+        document.getElementById('loginErro').style.display = 'block';
+        return;
+      }
+      logado = true;
+      document.getElementById('loginBox').style.display = 'none';
+      document.getElementById('painel').classList.add('show');
+      carregarDados();
+    }
+
+    function sair() {
+      logado = false;
+      document.getElementById('painel').classList.remove('show');
+      document.getElementById('loginBox').style.display = 'flex';
+      document.getElementById('senhaInput').value = '';
+      document.getElementById('loginErro').style.display = 'none';
+    }
+
+    async function carregarDados() {
+      try {
+        const res = await fetch(JSONBIN_URL + '/latest', {
+          headers: {
+            'X-Master-Key': JSONBIN_KEY,
+            'X-Access-Key': JSONBIN_KEY
+          }
+        });
+        const json = await res.json();
+        dadosAtuais = json.record;
+        atualizarStatusUI();
+        renderizarCupons();
+      } catch(e) {
+        mostrarSalvando('❌ Erro ao carregar. Verifique a conexão.');
+      }
+    }
+
+    async function salvarDados() {
+      mostrarSalvando('💾 Salvando...');
+      try {
+        await fetch(JSONBIN_URL, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_KEY,
+            'X-Access-Key': JSONBIN_KEY
+          },
+          body: JSON.stringify(dadosAtuais)
+        });
+        mostrarSalvando('✅ Salvo!');
+        setTimeout(() => mostrarSalvando(''), 2000);
+      } catch(e) {
+        mostrarSalvando('❌ Erro ao salvar!');
+      }
+    }
+
+    function atualizarStatusUI() {
+      const el = document.getElementById('statusAtual');
+      const txt = document.getElementById('statusTexto');
+      const aberto = dadosAtuais.status !== 'fechado';
+      el.className = 'status-atual ' + (aberto ? 'aberto' : 'fechado');
+      txt.textContent = aberto ? 'Loja aberta' : 'Loja fechada';
+    }
+
+    async function setStatus(status) {
+      dadosAtuais.status = status;
+      atualizarStatusUI();
+      await salvarDados();
+    }
+
+    function renderizarCupons() {
+      const lista = document.getElementById('cuponsLista');
+      const cupons = dadosAtuais.cupons || {};
+      const codigos = Object.keys(cupons);
+      if (codigos.length === 0) {
+        lista.innerHTML = '<div class="loading">Nenhum cupom cadastrado.</div>';
+        return;
+      }
+      lista.innerHTML = codigos.map(cod => {
+        const c = cupons[cod];
+        return `
+        <div class="cupom-row">
+          <div class="cupom-info">
+            <div class="cupom-codigo">${cod}</div>
+            <div class="cupom-desc">${c.desc}</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" ${c.ativo ? 'checked' : ''} onchange="toggleCupom('${cod}')">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>`;
+      }).join('');
+    }
+
+    async function toggleCupom(codigo) {
+      if (!dadosAtuais.cupons[codigo]) return;
+      dadosAtuais.cupons[codigo].ativo = !dadosAtuais.cupons[codigo].ativo;
+      await salvarDados();
+    }
+
+    function mostrarSalvando(txt) {
+      document.getElementById('salvando').textContent = txt;
+    }
+  </script>
+</body>
+</html>
